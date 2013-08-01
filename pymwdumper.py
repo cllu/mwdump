@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
+import os
 import re
 import sys
 from lxml import etree
+
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 class MWDump(object):
     """Read MediaWiki XML dump file
@@ -88,12 +91,96 @@ class MWDump(object):
     
         del context
         return count
+
+def import2mongo():
+    from pymongo import MongoClient
+    conn = MongoClient()
+    db = conn.enwiki_20091017
+    pages = db.pages
+
+    xml_filename = sys.argv[1]
+    mwdump = MWDump(xml_filename)
+    count = 0
+    for page in mwdump.iterpages():
+        key = {'_id': page['id']}
+        data = {'$set': page}
+        pages.update(key, data, True)
+        count += 1
+
+        if count % 10000 == 0:
+            print count, 
+        
+    print 'done'
+
+def find_ns():
+    
+    from pymongo import MongoClient
+    conn = MongoClient()
+    db = conn.enwiki_20091017
+    pages = db.pages
+
+    namespaces = {
+        'Media': -2,
+        'Special': -1,
+        'Talk': 1,
+        'User': 2,
+        'User talk': 3,
+        'Wikipedia': 4,
+        'Wikipedia talk': 5,
+        'File': 6,
+        'File talk': 7,
+        'MediaWiki': 8,
+        'MediaWiki talk': 9,
+        'Template': 10,
+        'Template talk': 11,
+        'Help': 12,
+        'Help talk': 13,
+        'Category': 14,
+        'Category talk': 15,
+        'Portal': 100,
+        'Portal talk': 101
+        }
+
+    from collections import defaultdict
+    counts = defaultdict(int)
+    from time import time
+    start = time()
+    
+    count = 0
+    for page in pages.find():
+        title = page['title']
+        ns = 0
+        if title.find(':') != -1:
+            prefix = title[:title.find(':')]
+            if namespaces.has_key(prefix):
+                ns = namespaces[prefix]
+            else:
+                ns = 9999
+        key = {'_id': page['id']}
+        data = {'$set': {'ns': ns}}
+        pages.update(key, data, True)
+
+        counts[ns] += 1
+
+        count += 1
+        if count % 10000 == 0:
+            print count, 
+
+    print 'done'
+    print counts
+    elaspe = time() - start
+    print 'time used: ', elaspe
+
+    conn.disconnect()
     
 def main():
     if len(sys.argv) < 2:
         print "Usage: pymwdumper.py <xml-file>"
         sys.exit(0)
-    
+
+    find_ns()
+    sys.exit()
+        
     xml_filename = sys.argv[1]
     mwdump = MWDump(xml_filename)
     count = 0
