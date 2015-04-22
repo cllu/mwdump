@@ -19,7 +19,7 @@ class MWDump(object):
             from bz2 import BZ2File
             self.f = BZ2File(self.filename)
         else:
-            self.f = open(self.filename)
+            self.f = open(self.filename, 'rb')
 
         self.getns()
         return self
