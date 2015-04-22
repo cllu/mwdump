@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='mwdump',
-      version='0.2',
+      version='0.3',
       description='MediaWiki dump file reader',
       url='https://github.com/cllu/mwdump',
       author='Chunliang Lyu',

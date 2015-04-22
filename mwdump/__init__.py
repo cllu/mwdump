@@ -87,8 +87,9 @@ class MWDump(object):
     def countpages(self):
         """count number of pages in this xml dump
         """
+        self.f.seek(0)
         count = 0
-        context = etree.iterparse(self.filename, events=('end',), tag=self.xmlns+'page') 
+        context = etree.iterparse(self.f, events=('end',), tag=self.ns+'page')
         for event, element in context:
             # increase the count
             count += 1
