@@ -8,5 +8,6 @@ setup(name='mwdump',
       author_email='hi@chunlianglyu.com',
       license='MIT',
       packages=['mwdump'],
+      install_requires=['lxml'],
       zip_safe=False
 )
