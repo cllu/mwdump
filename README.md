@@ -10,14 +10,14 @@ Install the package via `pip install mwdump`. Then you can use it like
 ```python
 def process_dump_file(filename):
     from mwdump import MWDump
-    mwdump = MWDump(filename)
-    count = 0
-    for page in mwdump.iterpages():
-        print(page['id'], page['title'], page['redirect'] if 'redirect' in page else 'NOREDIRECT')
+    with MWDump(xml_filename) as mw:
+        count = 0
+        for page in mw.iterpages():
+            print(page['id'], page['title'], page['redirect'] if 'redirect' in page else 'NOREDIRECT')
 
-        count += 1
-        if count > 1000:
-            break
+            count += 1
+            if count > 1000:
+                break
 
 if __name__ == '__main__'
     import sys

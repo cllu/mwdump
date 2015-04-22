@@ -13,10 +13,19 @@ class MWDump(object):
         """
         """
         self.filename = filename
-        from bz2 import BZ2File
-        self.f = BZ2File(self.filename)
+    
+    def __enter__(self):
+        if self.filename.endswith('.bz2'):
+            from bz2 import BZ2File
+            self.f = BZ2File(self.filename)
+        else:
+            self.f = open(self.filename)
 
         self.getns()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.f.close()
 
     def getns(self):
         """get xmlns
@@ -75,9 +84,6 @@ class MWDump(object):
     
         del context
 
-    def close():
-        self.f.close()
-
     def countpages(self):
         """count number of pages in this xml dump
         """
@@ -103,14 +109,14 @@ def main():
         sys.exit(0)
 
     xml_filename = sys.argv[1]
-    mwdump = MWDump(xml_filename)
-    count = 0
-    for page in mwdump.iterpages():
-        print(page['id'], page['title'], page['redirect'] if 'redirect' in page else 'NOREDIRECT')
+    with MWDump(xml_filename) as mw:
+        count = 0
+        for page in mw.iterpages():
+            print(page['id'], page['title'], page['redirect'] if 'redirect' in page else 'NOREDIRECT')
 
-        count += 1
-        if count > 1000:
-            break
+            count += 1
+            if count > 1000:
+                break
 
     #count = mwdump.countpages()
     #print("number of pages in this xml:", count)
